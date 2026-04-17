@@ -1,5 +1,15 @@
 import streamlit as st
+import pandas as pd
 import datetime
+import os
+
+# (Opcional IA)
+try:
+    from openai import OpenAI
+    client = OpenAI()
+    IA_ACTIVA = True
+except:
+    IA_ACTIVA = False
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="Juego Delaunay", layout="wide")
@@ -17,18 +27,28 @@ if "puntos" not in st.session_state:
 if "inicio" not in st.session_state:
     st.session_state.inicio = datetime.datetime.now()
 
+if "nivel" not in st.session_state:
+    st.session_state.nivel = "facil"
+
+if "errores_tipo" not in st.session_state:
+    st.session_state.errores_tipo = {
+        "geometria": 0,
+        "color": 0,
+        "patrones": 0
+    }
+
 # ---------------- ESTILO DELAUNAY ----------------
-def fondo_delaunay(color1, color2):
+def fondo(c1, c2):
     st.markdown(f"""
     <style>
     .stApp {{
-        background: linear-gradient(135deg, {color1}, {color2});
+        background: linear-gradient(135deg, {c1}, {c2});
         color: white;
     }}
     .stButton>button {{
         background-color: #E63946;
         color: white;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 18px;
     }}
     </style>
@@ -38,254 +58,221 @@ def ir(p):
     st.session_state.pantalla = p
     st.rerun()
 
+# ---------------- IA ----------------
+def generar_pregunta(tema):
+    if not IA_ACTIVA:
+        st.warning("IA no configurada")
+        return
+
+    prompt = f"""
+    Genera una pregunta tipo test para 1º ESO.
+    Tema: {tema}
+    Nivel: {st.session_state.nivel}
+    3 opciones numeradas y respuesta correcta.
+    """
+
+    r = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role":"user","content":prompt}]
+    )
+
+    st.write(r.choices[0].message.content)
+
+# ---------------- ADAPTACIÓN ----------------
+def adaptar(tipo):
+    st.session_state.errores_tipo[tipo] += 1
+
+    if st.session_state.errores_tipo[tipo] >= 2:
+        st.warning("💡 Pista adaptativa:")
+        if tipo == "geometria":
+            st.info("El radio va del centro al borde.")
+        if tipo == "color":
+            st.info("Los colores opuestos contrastan.")
+        if tipo == "patrones":
+            st.info("Observa la repetición.")
+
+# ---------------- GUARDAR ----------------
+def guardar():
+    fin = datetime.datetime.now()
+
+    df = pd.DataFrame([{
+        "puntos": st.session_state.puntos,
+        "duracion": (fin - st.session_state.inicio).seconds,
+        "geo": st.session_state.errores_tipo["geometria"],
+        "color": st.session_state.errores_tipo["color"],
+        "patrones": st.session_state.errores_tipo["patrones"]
+    }])
+
+    os.makedirs("data", exist_ok=True)
+
+    archivo = "data/resultados.csv"
+    if os.path.exists(archivo):
+        df.to_csv(archivo, mode="a", index=False, header=False)
+    else:
+        df.to_csv(archivo, index=False)
+
+# ---------------- DASHBOARD ----------------
+def dashboard():
+    st.title("📊 Analítica docente")
+
+    try:
+        df = pd.read_csv("data/resultados.csv")
+        st.dataframe(df)
+        st.bar_chart(df[["geo","color","patrones"]])
+    except:
+        st.info("Sin datos")
+
 # ---------------- INICIO ----------------
-
 def inicio():
-    fondo_delaunay("#111111", "#1D4ED8")
+    fondo("#111","#1D4ED8")
 
-    st.title("🎨 El código secreto del color")
+    st.title("🎨 Código secreto del color")
 
     st.markdown("""
-    ### 🎯 MISIÓN
-    
-    Vas a resolver **7 retos**.
-    
-    👉 En cada reto:
-    - Elige una respuesta
-    - Cada respuesta tiene un **número**
-    - **ANOTA ese número**
-    
-    🔐 Al final tendrás que escribir el código completo en este orden:
-    
-    1. Círculos  
-    2. Patrones  
-    3. Geometría  
-    4. Color  
-    5. Ritmo  
-    6. Simetría  
-    7. Composición  
-    
-    🧠 Ejemplo: 3-7-2-5...
-    
-    ⭐ IMPORTANTE: Guarda los números correctamente
+    Resuelve retos y **anota los números correctos**.
+    Al final introduce el código en orden.
     """)
 
-    nombre = st.text_input("Tu nombre")
+    st.session_state.nivel = st.radio("Nivel", ["facil","medio","dificil"])
 
-    if st.button("🚀 Empezar misión"):
-        st.session_state.nombre = nombre
+    if st.button("Jugar"):
         ir("mapa")
+
+    if st.button("Dashboard docente"):
+        ir("dashboard")
 
 # ---------------- MAPA ----------------
-
 def mapa():
-    fondo_delaunay("#E63946", "#FFD60A")
+    fondo("#E63946","#FFD60A")
 
-    st.title("🗺️ Mapa del juego")
-    st.write(f"⭐ Puntos: {st.session_state.puntos}")
+    st.write(f"⭐ {st.session_state.puntos} puntos")
 
-    if st.button("🔵 1. Círculos"): ir("r1")
-    if st.button("🔁 2. Patrones"): ir("r2")
-    if st.button("🔺 3. Geometría"): ir("r3")
-    if st.button("🌈 4. Color"): ir("r4")
-    if st.button("🧠 5. Ritmo"): ir("r5")
-    if st.button("📐 6. Simetría"): ir("r6")
-    if st.button("🎨 7. Composición"): ir("r7")
-    if st.button("🔐 Introducir código"): ir("final")
-
-# ---------------- FUNCIÓN EVALUAR ----------------
-
-def evaluar(correcta, codigo):
-    if correcta:
-        st.success(f"✔ Correcto → Anota el número: {codigo}")
-        st.session_state.puntos += 10
-        st.session_state.codigos.append(codigo)
-    else:
-        st.error("❌ Incorrecto (-2 puntos)")
-        st.session_state.puntos -= 2
+    if st.button("Círculos"): ir("r1")
+    if st.button("Patrones"): ir("r2")
+    if st.button("Geometría"): ir("r3")
+    if st.button("Color"): ir("r4")
+    if st.button("Extra IA"): ir("ia")
+    if st.button("Final"): ir("final")
 
 # ---------------- RETOS ----------------
+def evaluar(ok, codigo, tipo):
+    if ok:
+        st.success(f"✔ Correcto → {codigo}")
+        st.session_state.codigos.append(codigo)
+        st.session_state.puntos += 10
+    else:
+        st.error("❌ Incorrecto")
+        st.session_state.puntos -= 2
+        adaptar(tipo)
 
 def r1():
-    fondo_delaunay("#1D4ED8", "#2A9D8F")
-    st.header("🔵 Reto 1: Círculos")
+    fondo("#1D4ED8","#2A9D8F")
+    st.header("Círculos")
 
-    st.image("https://upload.wikimedia.org/wikipedia/commons/3/3f/Circle_radii.svg")
-
-    r = st.radio("¿Qué línea representa el radio?", [
-        "1 → Circunferencia completa",
-        "2 → Diámetro",
-        "3 → Del centro al borde"
+    r = st.radio("¿Qué es el radio?", [
+        "1 circunferencia",
+        "2 diámetro",
+        "3 centro-borde"
     ])
 
     if st.button("Responder"):
-        evaluar("3" in r, "3")
+        evaluar("3" in r, "3", "geometria")
 
-    botones_nav()
+    nav()
 
 def r2():
-    fondo_delaunay("#E63946", "#1D4ED8")
-    st.header("🔁 Reto 2: Patrones")
+    fondo("#E63946","#1D4ED8")
+    st.header("Patrones")
 
-    st.markdown("### Observa el patrón:")
+    st.markdown("🔴 🔵 🔴 🔵 🔴 ?")
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.markdown("<div style='background:red;height:80px'></div>", unsafe_allow_html=True)
-    col2.markdown("<div style='background:blue;height:80px'></div>", unsafe_allow_html=True)
-    col3.markdown("<div style='background:red;height:80px'></div>", unsafe_allow_html=True)
-    col4.markdown("<div style='background:blue;height:80px'></div>", unsafe_allow_html=True)
-
-    r = st.radio("¿Qué color continúa?", [
-        "1 → Azul",
-        "2 → Rojo",
-        "3 → Amarillo"
+    r = st.radio("Respuesta", [
+        "1 azul",
+        "2 rojo",
+        "3 amarillo"
     ])
 
     if st.button("Responder"):
-        evaluar("2" in r, "7")
+        evaluar("2" in r, "7", "patrones")
 
-    botones_nav()
+    nav()
 
 def r3():
-    fondo_delaunay("#FFD60A", "#E63946")
-    st.header("🔺 Reto 3: Geometría")
+    fondo("#FFD60A","#E63946")
+    st.header("Geometría")
 
-    st.image("https://upload.wikimedia.org/wikipedia/commons/6/6c/Sonia_Delaunay%2C_1914%2C_Electric_Prismes.jpg")
-
-    r = st.radio("¿Qué tipo de formas predominan?", [
-        "1 → Naturales",
-        "2 → Geométricas",
-        "3 → Texto"
+    r = st.radio("¿Qué forma tiene 4 lados iguales?", [
+        "1 triángulo",
+        "2 cuadrado",
+        "3 círculo"
     ])
 
     if st.button("Responder"):
-        evaluar("2" in r, "2")
+        evaluar("2" in r, "2", "geometria")
 
-    botones_nav()
+    nav()
 
 def r4():
-    fondo_delaunay("#2A9D8F", "#FFD60A")
-    st.header("🌈 Reto 4: Color")
+    fondo("#2A9D8F","#FFD60A")
+    st.header("Color")
 
-    r = st.radio("¿Qué combinación tiene más contraste?", [
-        "1 → Colores similares",
-        "2 → Colores opuestos",
-        "3 → Colores claros"
+    r = st.radio("Colores primarios", [
+        "1 rojo azul amarillo",
+        "2 verde azul rojo",
+        "3 blanco negro"
     ])
 
     if st.button("Responder"):
-        evaluar("2" in r, "5")
+        evaluar("1" in r, "5", "color")
 
-    botones_nav()
+    nav()
 
-def r5():
-    fondo_delaunay("#E63946", "#2A9D8F")
-    st.header("🧠 Reto 5: Ritmo")
+# ---------------- IA ----------------
+def ia():
+    fondo("#111","#E63946")
+    st.header("🤖 Generador de retos")
 
-    r = st.radio("¿Qué crea ritmo visual?", [
-        "1 → Repetición",
-        "2 → Un solo color",
-        "3 → Texto"
-    ])
+    tema = st.selectbox("Tema", ["geometria","color","patrones"])
 
-    if st.button("Responder"):
-        evaluar("1" in r, "8")
+    if st.button("Generar pregunta"):
+        generar_pregunta(tema)
 
-    botones_nav()
-
-def r6():
-    fondo_delaunay("#1D4ED8", "#FFD60A")
-    st.header("📐 Reto 6: Simetría")
-
-    r = st.radio("¿Qué es simetría?", [
-        "1 → Partes iguales",
-        "2 → Caos",
-        "3 → Aleatorio"
-    ])
-
-    if st.button("Responder"):
-        evaluar("1" in r, "6")
-
-    botones_nav()
-
-def r7():
-    fondo_delaunay("#FFD60A", "#1D4ED8")
-    st.header("🎨 Reto 7: Composición")
-
-    r = st.radio("¿Qué mejora una composición?", [
-        "1 → Organización visual",
-        "2 → Desorden",
-        "3 → Nada"
-    ])
-
-    if st.button("Responder"):
-        evaluar("1" in r, "4")
-
-    botones_nav()
-
-# ---------------- BOTONES NAVEGACIÓN ----------------
-
-def botones_nav():
-    col1, col2 = st.columns(2)
-
-    if col1.button("⬅ Volver al mapa"):
-        ir("mapa")
-
-    if col2.button("🏠 Volver al inicio"):
-        ir("inicio")
+    nav()
 
 # ---------------- FINAL ----------------
-
 def final():
-    fondo_delaunay("#111111", "#E63946")
+    fondo("#111","#000")
 
-    st.header("🔐 INTRODUCE EL CÓDIGO FINAL")
+    st.header("Código final")
 
-    st.markdown("""
-    ### 📌 ¿Qué tienes que hacer?
-    
-    - Usa los números que has ido anotando  
-    - Escríbelos en el orden de los retos  
-    - Sin espacios o separados por guiones
-    
-    👉 Ejemplo: 3725...
-    """)
-
-    codigo = st.text_input("Introduce el código")
+    c = st.text_input("Código")
 
     if st.button("Comprobar"):
-        correcto = "".join(st.session_state.codigos)
-
-        if codigo == correcto:
+        if c == "".join(st.session_state.codigos):
             ir("ganar")
         else:
             ir("perder")
 
-    botones_nav()
+    nav()
 
-# ---------------- GANAR / PERDER ----------------
-
+# ---------------- GANAR/PERDER ----------------
 def ganar():
-    fondo_delaunay("#2A9D8F", "#FFD60A")
-    st.title("🎉 ¡HAS GANADO!")
-    st.balloons()
-
-    st.write(f"⭐ Puntuación: {st.session_state.puntos}")
-
-    if st.button("🏠 Volver al inicio"):
-        ir("inicio")
+    fondo("#2A9D8F","#FFD60A")
+    st.title("🎉 Ganaste")
+    guardar()
 
 def perder():
-    fondo_delaunay("#E63946", "#111111")
-    st.title("❌ Código incorrecto")
+    fondo("#E63946","#111")
+    st.title("❌ Intenta de nuevo")
 
-    st.write("Revisa los números que anotaste")
-
-    if st.button("🔁 Intentar otra vez"):
+# ---------------- NAV ----------------
+def nav():
+    if st.button("Mapa"):
         ir("mapa")
+    if st.button("Inicio"):
+        ir("inicio")
 
 # ---------------- ROUTER ----------------
-
 pantallas = {
     "inicio": inicio,
     "mapa": mapa,
@@ -293,12 +280,11 @@ pantallas = {
     "r2": r2,
     "r3": r3,
     "r4": r4,
-    "r5": r5,
-    "r6": r6,
-    "r7": r7,
+    "ia": ia,
     "final": final,
     "ganar": ganar,
-    "perder": perder
+    "perder": perder,
+    "dashboard": dashboard
 }
 
 pantallas[st.session_state.pantalla]()
