@@ -17,8 +17,57 @@ if "puntos" not in st.session_state:
 if "inicio" not in st.session_state:
     st.session_state.inicio = datetime.datetime.now()
 
-if "errores" not in st.session_state:
-    st.session_state.errores = 0
+# ---------------- ESTILO VISUAL ----------------
+def estilo():
+    st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #1D4ED8, #E63946, #FFD60A);
+        color: white;
+        font-family: 'Trebuchet MS', sans-serif;
+    }
+
+    h1 {
+        font-size: 48px;
+        color: #FFD60A;
+        text-align: center;
+    }
+
+    h2 {
+        font-size: 36px;
+        color: #ffffff;
+    }
+
+    .pregunta {
+        font-size: 24px;
+        font-weight: bold;
+        color: #FFD60A;
+    }
+
+    .explicacion {
+        font-size: 18px;
+        color: #ffffff;
+    }
+
+    .codigo-box {
+        background-color: rgba(0,0,0,0.6);
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 20px;
+    }
+
+    .stButton>button {
+        background-color: #E63946;
+        color: white;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+def ir(p):
+    st.session_state.pantalla = p
+    st.rerun()
 
 # ---------------- SONIDOS ----------------
 def sonido_acierto():
@@ -27,29 +76,8 @@ def sonido_acierto():
 def sonido_error():
     st.audio("https://www.soundjay.com/buttons/sounds/button-10.mp3")
 
-# ---------------- ESTILO DELAUNAY ----------------
-def fondo(c1, c2):
-    st.markdown(f"""
-    <style>
-    .stApp {{
-        background: linear-gradient(135deg, {c1}, {c2});
-        color: white;
-    }}
-    .stButton>button {{
-        background-color: #E63946;
-        color: white;
-        border-radius: 10px;
-        font-size: 18px;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-def ir(p):
-    st.session_state.pantalla = p
-    st.rerun()
-
 # ---------------- NAV ----------------
-def botones_nav():
+def nav():
     col1, col2 = st.columns(2)
 
     if col1.button("🗺️ Mapa"):
@@ -58,62 +86,10 @@ def botones_nav():
     if col2.button("🏠 Inicio"):
         ir("inicio")
 
-# ---------------- INICIO ----------------
-def inicio():
-    fondo("#111111", "#1D4ED8")
-
-    st.title("🎨 El código secreto del color")
-
-    st.markdown("""
-    ### 🎯 ¿Cómo se juega?
-
-    - Introduce tu nombre  
-    - Elige un nivel  
-    - Resuelve los retos  
-
-    🧠 En cada reto:
-    - Elige una respuesta
-    - Cada respuesta tiene un número
-    - **Anota ese número**
-
-    🔐 Al final:
-    - Introduce el código con todos los números
-    - En el orden de los retos
-
-    ⭐ Sistema de puntos:
-    - Acierto: +10
-    - Error: -2
-    """)
-
-    st.session_state.nombre = st.text_input("Tu nombre")
-
-    st.session_state.nivel = st.radio("Nivel", ["Fácil", "Medio", "Difícil"])
-
-    st.write(f"⭐ Puntos actuales: {st.session_state.puntos}")
-
-    if st.button("🚀 Comenzar"):
-        ir("mapa")
-
-# ---------------- MAPA ----------------
-def mapa():
-    fondo("#E63946", "#FFD60A")
-
-    st.title("🗺️ Mapa del juego")
-    st.write(f"⭐ Puntos: {st.session_state.puntos}")
-
-    if st.button("🔵 1. Círculos"): ir("r1")
-    if st.button("🔁 2. Patrones"): ir("r2")
-    if st.button("🔺 3. Geometría"): ir("r3")
-    if st.button("🌈 4. Color"): ir("r4")
-    if st.button("🧠 5. Ritmo"): ir("r5")
-    if st.button("📐 6. Simetría"): ir("r6")
-    if st.button("🎨 7. Composición"): ir("r7")
-    if st.button("🔐 Introducir código"): ir("final")
-
 # ---------------- EVALUAR ----------------
 def evaluar(correcta, codigo):
     if correcta:
-        st.success(f"✔ Correcto → Anota el número: {codigo}")
+        st.success(f"✔ Correcto → ANOTA: {codigo}")
         sonido_acierto()
         st.session_state.puntos += 10
         st.session_state.codigos.append(codigo)
@@ -121,18 +97,94 @@ def evaluar(correcta, codigo):
         st.error("❌ Incorrecto")
         sonido_error()
         st.session_state.puntos -= 2
-        st.session_state.errores += 1
+
+# ---------------- INICIO ----------------
+def inicio():
+    estilo()
+
+    st.markdown("<h1>🎨 El código secreto del color</h1>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class='explicacion'>
+    
+    <b>🎯 OBJETIVO DEL JUEGO</b><br><br>
+
+    Vas a resolver <b>7 retos</b> relacionados con:
+    <ul>
+        <li>📐 Geometría</li>
+        <li>🎨 Color</li>
+        <li>🧠 Arte de Sonia Delaunay</li>
+    </ul>
+
+    <b>🧠 ¿Cómo funciona?</b><br><br>
+
+    En cada reto:
+    <ul>
+        <li>Eliges una respuesta</li>
+        <li>Cada respuesta tiene un número</li>
+        <li><b>Debes ANOTAR ese número</b></li>
+    </ul>
+
+    <b>🔐 RETO FINAL: EL CÓDIGO</b><br><br>
+
+    Al terminar:
+    <ul>
+        <li>Tendrás varios números</li>
+        <li>Debes escribirlos en el orden de los retos</li>
+    </ul>
+
+    <div class='codigo-box'>
+    Ejemplo:<br>
+    Reto 1 → 3<br>
+    Reto 2 → 7<br>
+    Reto 3 → 2<br><br>
+    Código final → <b>372...</b>
+    </div>
+
+    <br>
+    <b>⭐ PUNTOS</b><br>
+    ✔ Acierto: +10<br>
+    ❌ Error: -2
+    
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.session_state.nombre = st.text_input("Tu nombre")
+    st.session_state.nivel = st.radio("Nivel", ["Fácil", "Medio", "Difícil"])
+
+    st.write(f"⭐ Puntos actuales: {st.session_state.puntos}")
+
+    if st.button("🚀 Empezar"):
+        ir("mapa")
+
+# ---------------- MAPA ----------------
+def mapa():
+    estilo()
+
+    st.markdown("<h2>🗺️ Mapa del juego</h2>", unsafe_allow_html=True)
+    st.write(f"⭐ Puntos: {st.session_state.puntos}")
+
+    if st.button("🔵 Círculos"): ir("r1")
+    if st.button("🔁 Patrones"): ir("r2")
+    if st.button("🔺 Geometría"): ir("r3")
+    if st.button("🌈 Color"): ir("r4")
+    if st.button("🧠 Ritmo"): ir("r5")
+    if st.button("📐 Simetría"): ir("r6")
+    if st.button("🎨 Composición"): ir("r7")
+    if st.button("🔐 Código final"): ir("final")
 
 # ---------------- RETOS ----------------
 
 def r1():
-    fondo("#1D4ED8", "#2A9D8F")
-    st.header("🔵 Círculos en la obra de Delaunay")
+    estilo()
+    st.markdown("<h2>🔵 Círculos</h2>", unsafe_allow_html=True)
 
     st.image("https://upload.wikimedia.org/wikipedia/commons/3/3f/Circle_radii.svg")
 
-    r = st.radio("¿Qué línea representa el radio?", [
-        "1 → Circunferencia completa",
+    st.markdown("<div class='pregunta'>¿Qué línea representa el radio?</div>", unsafe_allow_html=True)
+
+    r = st.radio("", [
+        "1 → Circunferencia",
         "2 → Diámetro",
         "3 → Del centro al borde"
     ])
@@ -140,17 +192,15 @@ def r1():
     if st.button("Responder"):
         evaluar("3" in r, "3")
 
-    botones_nav()
+    nav()
 
 def r2():
-    fondo("#E63946", "#1D4ED8")
-    st.header("🔁 Patrones en el arte")
+    estilo()
+    st.markdown("<h2>🔁 Patrones</h2>", unsafe_allow_html=True)
 
-    st.markdown("Observa la repetición de colores:")
+    st.markdown("<div class='pregunta'>🔴 🔵 🔴 🔵 🔴 ?</div>", unsafe_allow_html=True)
 
-    st.markdown("🔴 🔵 🔴 🔵 🔴 ?")
-
-    r = st.radio("¿Qué color sigue?", [
+    r = st.radio("", [
         "1 → Azul",
         "2 → Rojo",
         "3 → Amarillo"
@@ -159,13 +209,15 @@ def r2():
     if st.button("Responder"):
         evaluar("2" in r, "7")
 
-    botones_nav()
+    nav()
 
 def r3():
-    fondo("#FFD60A", "#E63946")
-    st.header("🔺 Formas geométricas")
+    estilo()
+    st.markdown("<h2>🔺 Geometría</h2>", unsafe_allow_html=True)
 
-    r = st.radio("¿Qué figura tiene 4 lados iguales?", [
+    st.markdown("<div class='pregunta'>¿Qué figura tiene 4 lados iguales?</div>", unsafe_allow_html=True)
+
+    r = st.radio("", [
         "1 → Triángulo",
         "2 → Cuadrado",
         "3 → Círculo"
@@ -174,13 +226,15 @@ def r3():
     if st.button("Responder"):
         evaluar("2" in r, "2")
 
-    botones_nav()
+    nav()
 
 def r4():
-    fondo("#2A9D8F", "#FFD60A")
-    st.header("🌈 Colores")
+    estilo()
+    st.markdown("<h2>🌈 Color</h2>", unsafe_allow_html=True)
 
-    r = st.radio("¿Cuáles son los colores primarios?", [
+    st.markdown("<div class='pregunta'>¿Cuáles son los colores primarios?</div>", unsafe_allow_html=True)
+
+    r = st.radio("", [
         "1 → Rojo, azul y amarillo",
         "2 → Verde, azul y rojo",
         "3 → Negro, blanco y gris"
@@ -189,14 +243,16 @@ def r4():
     if st.button("Responder"):
         evaluar("1" in r, "5")
 
-    botones_nav()
+    nav()
 
 def r5():
-    fondo("#E63946", "#2A9D8F")
-    st.header("🧠 Ritmo visual")
+    estilo()
+    st.markdown("<h2>🧠 Ritmo</h2>", unsafe_allow_html=True)
 
-    r = st.radio("¿Qué crea ritmo visual?", [
-        "1 → Repetición de formas",
+    st.markdown("<div class='pregunta'>¿Qué crea ritmo visual?</div>", unsafe_allow_html=True)
+
+    r = st.radio("", [
+        "1 → Repetición",
         "2 → Un solo color",
         "3 → Texto"
     ])
@@ -204,13 +260,15 @@ def r5():
     if st.button("Responder"):
         evaluar("1" in r, "8")
 
-    botones_nav()
+    nav()
 
 def r6():
-    fondo("#1D4ED8", "#FFD60A")
-    st.header("📐 Simetría")
+    estilo()
+    st.markdown("<h2>📐 Simetría</h2>", unsafe_allow_html=True)
 
-    r = st.radio("¿Qué es simetría?", [
+    st.markdown("<div class='pregunta'>¿Qué es la simetría?</div>", unsafe_allow_html=True)
+
+    r = st.radio("", [
         "1 → Partes iguales",
         "2 → Desorden",
         "3 → Aleatorio"
@@ -219,13 +277,15 @@ def r6():
     if st.button("Responder"):
         evaluar("1" in r, "6")
 
-    botones_nav()
+    nav()
 
 def r7():
-    fondo("#FFD60A", "#1D4ED8")
-    st.header("🎨 Composición artística")
+    estilo()
+    st.markdown("<h2>🎨 Composición</h2>", unsafe_allow_html=True)
 
-    r = st.radio("¿Qué mejora una obra?", [
+    st.markdown("<div class='pregunta'>¿Qué mejora una obra?</div>", unsafe_allow_html=True)
+
+    r = st.radio("", [
         "1 → Organización visual",
         "2 → Caos",
         "3 → Nada"
@@ -234,53 +294,42 @@ def r7():
     if st.button("Responder"):
         evaluar("1" in r, "4")
 
-    botones_nav()
+    nav()
 
 # ---------------- FINAL ----------------
 
 def final():
-    fondo("#111111", "#E63946")
+    estilo()
 
-    st.header("🔐 Código final")
+    st.markdown("<h2>🔐 Código final</h2>", unsafe_allow_html=True)
 
     st.markdown("""
-    ### 📌 ¿Qué debes hacer?
+    <div class='explicacion'>
+    Escribe los números que has anotado en orden.<br><br>
+    Ejemplo: 3725...
+    </div>
+    """, unsafe_allow_html=True)
 
-    - Usa los números que anotaste  
-    - Escríbelos en orden  
-    - Ejemplo: 3725...
-    """)
-
-    codigo = st.text_input("Código")
+    c = st.text_input("Código")
 
     if st.button("Comprobar"):
-        correcto = "".join(st.session_state.codigos)
-
-        if codigo == correcto:
+        if c == "".join(st.session_state.codigos):
             ir("ganar")
         else:
             ir("perder")
 
-    botones_nav()
+    nav()
 
-# ---------------- GANAR / PERDER ----------------
+# ---------------- FINAL ----------------
 
 def ganar():
-    fondo("#2A9D8F", "#FFD60A")
-    st.title("🎉 ¡HAS GANADO!")
+    estilo()
+    st.markdown("<h1>🎉 ¡HAS GANADO!</h1>", unsafe_allow_html=True)
     st.balloons()
-    st.write(f"⭐ Puntuación final: {st.session_state.puntos}")
-
-    if st.button("🏠 Inicio"):
-        ir("inicio")
 
 def perder():
-    fondo("#E63946", "#111111")
-    st.title("❌ Código incorrecto")
-    st.write("Revisa los números que anotaste")
-
-    if st.button("🔁 Reintentar"):
-        ir("mapa")
+    estilo()
+    st.markdown("<h1>❌ Código incorrecto</h1>", unsafe_allow_html=True)
 
 # ---------------- ROUTER ----------------
 
