@@ -28,7 +28,6 @@ def estilo():
     }
     h1 {font-size: 45px; color: #FFD60A;}
     h2 {font-size: 30px;}
-    .pregunta {font-size: 22px; font-weight: bold;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -47,7 +46,7 @@ def nav():
 # ---------------- EVALUAR ----------------
 def evaluar(correcta, codigo):
     if correcta:
-        st.success(f"✔ Correcto → Anota: {codigo}")
+        st.success("✔ Correcto. Anota el número de esta respuesta.")
         st.session_state.puntos += 10
         st.session_state.codigos.append(codigo)
     else:
@@ -59,181 +58,193 @@ def evaluar(correcta, codigo):
 # ---------------- INICIO ----------------
 def inicio():
     estilo()
-
     st.title("🎨 El código secreto del color")
 
     st.markdown("""
-    ### 🎯 ¿Cómo jugar?
+    ### 🎯 Cómo jugar
 
-    Vas a resolver una serie de retos relacionados con:
-    - 📐 Geometría
-    - 🎨 Color
-    - 🧠 Arte de Sonia Delaunay
+    - Resuelve los retos  
+    - Cada respuesta tiene un número  
+    - **Debes anotarlo**  
 
-    #### 🧩 En cada reto:
-    - Elige una respuesta
-    - Cada respuesta tiene un número
-    - **Debes anotar ese número**
+    🔐 Al final:
+    - Introduce el código en orden  
 
-    #### 🔐 Reto final:
-    - Tendrás varios números
-    - Debes escribirlos en orden
-    - Ese será el código final
-
-    #### ⭐ Puntuación:
-    ✔ +10 puntos → respuesta correcta  
-    ❌ -2 puntos → respuesta incorrecta
+    ⭐ Puntuación:
+    ✔ +10 / ❌ -2
     """)
 
-    st.session_state.nombre = st.text_input("Nombre del jugador")
+    st.session_state.nombre = st.text_input("Nombre")
     st.session_state.nivel = st.radio("Nivel", ["Fácil","Medio","Difícil"])
 
-    st.write(f"⭐ Puntos actuales: {st.session_state.puntos}")
-
-    if st.button("🚀 Comenzar"):
+    if st.button("🚀 Empezar"):
         ir("mapa")
 
 # ---------------- MAPA ----------------
 def mapa():
     estilo()
+    st.header("🗺️ Mapa")
 
-    st.header("🗺️ Mapa del juego")
-    st.write(f"⭐ Puntos: {st.session_state.puntos}")
+    if st.button("1. Círculos"): ir("r1")
+    if st.button("2. Patrones"): ir("r2")
+    if st.button("3. Geometría"): ir("r3")
+    if st.button("4. Color"): ir("r4")
+    if st.button("5. Ritmo"): ir("r5")
+    if st.button("6. Simetría"): ir("r6")
+    if st.button("7. Composición"): ir("r7")
+    if st.button("Código final"): ir("final")
 
-    if st.button("🔵 1. Círculos"): ir("r1")
-    if st.button("🔁 2. Patrones"): ir("r2")
-    if st.button("🔺 3. Geometría"): ir("r3")
-    if st.button("🌈 4. Color"): ir("r4")
-    if st.button("🧠 5. Ritmo"): ir("r5")
-    if st.button("📐 6. Simetría"): ir("r6")
-    if st.button("🎨 7. Composición"): ir("r7")
-    if st.button("🔐 Introducir código"): ir("final")
-
-# ---------------- RETOS ----------------
+# ---------------- RETOS CON NIVELES ----------------
 
 def r1():
     estilo()
     st.header("🔵 Círculos")
 
-    r = st.radio("¿Qué línea representa el radio?", [
-        "1 → Circunferencia completa",
-        "2 → Diámetro",
-        "3 → Del centro al borde"
-    ])
+    nivel = st.session_state.nivel
+
+    if nivel == "Fácil":
+        pregunta = "¿Qué línea va del centro al borde?"
+        opciones = ["1 Circunferencia","2 Diámetro","3 Radio"]
+        correcta = "3"
+        codigo = "3"
+
+    elif nivel == "Medio":
+        pregunta = "¿Cómo se llama la línea que une dos puntos pasando por el centro?"
+        opciones = ["1 Radio","2 Diámetro","3 Arco"]
+        correcta = "2"
+        codigo = "1"
+
+    else:
+        pregunta = "¿Qué relación tiene el diámetro con el radio?"
+        opciones = ["1 Es igual","2 Es el doble","3 Es la mitad"]
+        correcta = "2"
+        codigo = "9"
+
+    r = st.radio(pregunta, opciones)
 
     if st.button("Responder"):
-        evaluar("3" in r, "3")
+        evaluar(correcta in r, codigo)
 
     nav()
+
+# ---------------- PATRONES ----------------
 
 def r2():
     estilo()
     st.header("🔁 Patrones")
 
-    st.markdown("Observa el patrón:")
     st.markdown("🔴 🔵 🔴 🔵 🔴 ?")
 
-    r = st.radio("¿Qué color continúa?", [
-        "1 → Azul",
-        "2 → Rojo",
-        "3 → Amarillo"
+    r = st.radio("¿Qué color sigue?", [
+        "1 Azul",
+        "2 Rojo",
+        "3 Amarillo"
     ])
 
     if st.button("Responder"):
-        evaluar("1" in r, "7")  # CORRECTO: AZUL
+        evaluar("1" in r, "7")  # AZUL CORRECTO
 
     nav()
+
+# ---------------- GEOMETRÍA ----------------
 
 def r3():
     estilo()
     st.header("🔺 Geometría")
 
-    r = st.radio("¿Qué figura tiene 4 lados iguales?", [
-        "1 → Triángulo",
-        "2 → Cuadrado",
-        "3 → Círculo"
-    ])
+    nivel = st.session_state.nivel
+
+    if nivel == "Fácil":
+        pregunta = "¿Cuál tiene 4 lados iguales?"
+        opciones = ["1 Triángulo","2 Cuadrado","3 Círculo"]
+        correcta = "2"
+        codigo = "2"
+
+    elif nivel == "Medio":
+        pregunta = "¿Cuántos lados tiene un pentágono?"
+        opciones = ["1 4","2 5","3 6"]
+        correcta = "2"
+        codigo = "5"
+
+    else:
+        pregunta = "¿Cuánto mide un ángulo recto?"
+        opciones = ["1 45°","2 90°","3 180°"]
+        correcta = "2"
+        codigo = "8"
+
+    r = st.radio(pregunta, opciones)
 
     if st.button("Responder"):
-        evaluar("2" in r, "2")
+        evaluar(correcta in r, codigo)
 
     nav()
+
+# ---------------- COLOR ----------------
 
 def r4():
     estilo()
     st.header("🌈 Color")
 
-    r = st.radio("¿Cuáles son los colores primarios?", [
-        "1 → Rojo, azul y amarillo",
-        "2 → Verde, azul y rojo",
-        "3 → Negro y blanco"
-    ])
+    nivel = st.session_state.nivel
+
+    if nivel == "Fácil":
+        pregunta = "¿Cuáles son los colores primarios?"
+        opciones = ["1 Rojo azul amarillo","2 Verde azul rojo","3 Blanco negro"]
+        correcta = "1"
+        codigo = "5"
+
+    elif nivel == "Medio":
+        pregunta = "Rojo + amarillo = ?"
+        opciones = ["1 Verde","2 Naranja","3 Azul"]
+        correcta = "2"
+        codigo = "4"
+
+    else:
+        pregunta = "¿Qué colores generan contraste?"
+        opciones = ["1 Iguales","2 Opuestos","3 Claros"]
+        correcta = "2"
+        codigo = "6"
+
+    r = st.radio(pregunta, opciones)
 
     if st.button("Responder"):
-        evaluar("1" in r, "5")
+        evaluar(correcta in r, codigo)
 
     nav()
 
+# ---------------- RESTO ----------------
+
 def r5():
     estilo()
-    st.header("🧠 Ritmo visual")
-
-    r = st.radio("¿Qué crea ritmo visual?", [
-        "1 → Repetición de formas",
-        "2 → Un solo color",
-        "3 → Texto"
-    ])
-
+    st.header("🧠 Ritmo")
+    r = st.radio("¿Qué crea ritmo visual?", ["1 Repetición","2 Un color","3 Texto"])
     if st.button("Responder"):
         evaluar("1" in r, "8")
-
     nav()
 
 def r6():
     estilo()
     st.header("📐 Simetría")
-
-    r = st.radio("¿Qué es la simetría?", [
-        "1 → Partes iguales",
-        "2 → Desorden",
-        "3 → Aleatorio"
-    ])
-
+    r = st.radio("¿Qué es simetría?", ["1 Partes iguales","2 Caos","3 Aleatorio"])
     if st.button("Responder"):
         evaluar("1" in r, "6")
-
     nav()
 
 def r7():
     estilo()
     st.header("🎨 Composición")
-
-    r = st.radio("¿Qué mejora una obra artística?", [
-        "1 → Organización visual",
-        "2 → Caos",
-        "3 → Nada"
-    ])
-
+    r = st.radio("¿Qué mejora una obra?", ["1 Organización","2 Caos","3 Nada"])
     if st.button("Responder"):
         evaluar("1" in r, "4")
-
     nav()
 
 # ---------------- FINAL ----------------
 
 def final():
     estilo()
-    st.header("🔐 Introduce el código final")
+    st.header("🔐 Código final")
 
-    st.markdown("""
-    ### 📌 Instrucciones
-
-    - Usa los números que has anotado  
-    - Escríbelos en el orden de los retos  
-    - Ejemplo: 3725...
-    """)
-
-    c = st.text_input("Código")
+    c = st.text_input("Introduce el código")
 
     if st.button("Comprobar"):
         if c == "".join(st.session_state.codigos):
@@ -243,19 +254,15 @@ def final():
 
     nav()
 
-# ---------------- RESULTADO ----------------
-
 def ganar():
     estilo()
     st.title("🎉 ¡HAS GANADO!")
     st.balloons()
-    st.write(f"⭐ Puntuación final: {st.session_state.puntos}")
     nav()
 
 def perder():
     estilo()
     st.title("❌ Código incorrecto")
-    st.write("Revisa los números que anotaste")
     nav()
 
 # ---------------- ROUTER ----------------
