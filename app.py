@@ -22,7 +22,7 @@ if "respuestas" not in st.session_state:
 if "inicio" not in st.session_state:
     st.session_state.inicio = datetime.datetime.now()
 
-# ---------------- ESTILO VISUAL ----------------
+# ---------------- ESTILO DELAUNAY ----------------
 def estilo():
     st.markdown("""
     <style>
@@ -30,13 +30,15 @@ def estilo():
         background-image: url("https://upload.wikimedia.org/wikipedia/commons/6/6c/Sonia_Delaunay%2C_1914%2C_Electric_Prismes.jpg");
         background-size: cover;
         background-attachment: fixed;
-        color: white;
     }
     .stButton>button {
         background-color: #E63946;
         color: white;
         border-radius: 12px;
         font-size: 18px;
+    }
+    h1, h2, h3 {
+        color: #FFD60A;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -46,28 +48,26 @@ def ir(p):
     st.rerun()
 
 # ---------------- IA INTERNA ----------------
-def ayuda_ia(pregunta, correcta):
-    st.markdown("### 🤖 Ayuda inteligente")
+def ayuda_ia(tipo):
+    if tipo == "patron":
+        st.info("Observa los colores: rojo y azul se alternan.")
+    elif tipo == "radio":
+        st.info("El radio va del centro al borde.")
+    else:
+        st.info("Piensa en la lógica del patrón.")
 
-    if pregunta == "patron":
-        st.info("Observa la secuencia: alterna colores rojo y azul.")
-    elif pregunta == "radio":
-        st.info("El radio siempre va del centro al borde.")
-    elif pregunta == "error":
-        st.warning("Parece que estás fallando varias veces. Prueba a fijarte en el patrón o pedir ayuda.")
-
-# ---------------- GUARDAR DATOS ----------------
+# ---------------- GUARDAR ----------------
 def guardar(nombre):
     fin = datetime.datetime.now()
 
     df = pd.DataFrame([{
         "nombre": nombre,
         "puntos": st.session_state.puntos,
-        "duracion": (fin - st.session_state.inicio).seconds,
-        "errores": sum([1 for r in st.session_state.respuestas if not r])
+        "duracion": (fin - st.session_state.inicio).seconds
     }])
 
     os.makedirs("data", exist_ok=True)
+
     archivo = "data/resultados.csv"
 
     if os.path.exists(archivo):
@@ -75,60 +75,69 @@ def guardar(nombre):
     else:
         df.to_csv(archivo, index=False)
 
-# ---------------- DASHBOARD DOCENTE ----------------
-def dashboard():
-    st.title("📊 Dashboard docente")
-
-    try:
-        df = pd.read_csv("data/resultados.csv")
-
-        st.subheader("Resultados generales")
-        st.dataframe(df)
-
-        st.subheader("Media de puntuación")
-        st.write(df["puntos"].mean())
-
-        st.subheader("Errores medios")
-        st.write(df["errores"].mean())
-
-        st.bar_chart(df["puntos"])
-
-    except:
-        st.info("No hay datos aún")
-
 # ---------------- PANTALLAS ----------------
 
 def inicio():
     estilo()
+
     st.title("🎨 El código secreto del color")
 
     st.markdown("""
-    ### 🎯 Objetivo
-
-    Completa retos para conseguir números secretos.
+    ### 🎯 MISIÓN
     
-    Al final tendrás que introducir el código en orden.
+    Vas a resolver **7 retos**.
+    
+    Cada reto te dará **un número secreto**.
+    
+    🔐 Al final tendrás que formar el código en este orden:
+    
+    1. Círculos  
+    2. Patrones  
+    3. Geometría  
+    4. Color  
+    5. Ritmo  
+    6. Simetría  
+    7. Composición  
+    
+    👉 Ejemplo: 3 7 2 5 ...
+    
+    ⭐ Cada acierto suma puntos.
     """)
 
     nombre = st.text_input("Tu nombre")
 
-    if st.button("🚀 Jugar"):
+    if st.button("🚀 Empezar"):
         st.session_state.nombre = nombre
         ir("mapa")
-
-    if st.button("📊 Ver dashboard"):
-        ir("dashboard")
 
 # ---------------- MAPA ----------------
 
 def mapa():
     estilo()
+
     st.title("🗺️ Mapa del juego")
     st.write(f"⭐ Puntos: {st.session_state.puntos}")
 
     if st.button("🔵 Círculos"): ir("r1")
     if st.button("🔁 Patrones"): ir("r2")
+    if st.button("🔺 Geometría"): ir("r3")
+    if st.button("🌈 Color"): ir("r4")
+    if st.button("🧠 Ritmo"): ir("r5")
+    if st.button("📐 Simetría"): ir("r6")
+    if st.button("🎨 Composición"): ir("r7")
     if st.button("🔐 Final"): ir("final")
+
+# ---------------- FUNCION EVALUAR ----------------
+
+def evaluar(correcta, codigo):
+    if correcta:
+        st.success(f"Correcto (+10) Código: {codigo}")
+        st.session_state.puntos += 10
+        if codigo not in st.session_state.codigos:
+            st.session_state.codigos.append(codigo)
+    else:
+        st.error("Incorrecto (-2)")
+        st.session_state.puntos -= 2
 
 # ---------------- RETO 1 ----------------
 
@@ -138,54 +147,108 @@ def r1():
 
     st.image("https://upload.wikimedia.org/wikipedia/commons/3/3f/Circle_radii.svg")
 
-    r = st.radio("¿Qué es el radio?", [
+    r = st.radio("¿Qué línea es el radio?", [
         "Centro-borde", "Diámetro", "Circunferencia"
     ])
 
     if st.button("Responder"):
-        correcta = r == "Centro-borde"
-        st.session_state.respuestas.append(correcta)
-
-        if correcta:
-            st.success("Correcto +10")
-            st.session_state.puntos += 10
-            st.session_state.codigos.append("3")
-        else:
-            st.error("Incorrecto")
-            ayuda_ia("radio", False)
+        evaluar(r == "Centro-borde", "3")
 
     if st.button("⬅ Volver"): ir("mapa")
 
-# ---------------- RETO 2 (ARREGLADO) ----------------
+# ---------------- RETO 2 (CORREGIDO) ----------------
 
 def r2():
     estilo()
-    st.header("🔁 Patrones visuales")
+    st.header("🔁 Patrones")
 
     st.markdown("### Observa el patrón:")
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
-    col1.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Red_square.svg/120px-Red_square.svg.png")
-    col2.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Blue_square.svg/120px-Blue_square.svg.png")
-    col3.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Red_square.svg/120px-Red_square.svg.png")
-    col4.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Blue_square.svg/120px-Blue_square.svg.png")
+    col1.markdown("<div style='background:red;height:80px'></div>", unsafe_allow_html=True)
+    col2.markdown("<div style='background:blue;height:80px'></div>", unsafe_allow_html=True)
+    col3.markdown("<div style='background:red;height:80px'></div>", unsafe_allow_html=True)
+    col4.markdown("<div style='background:blue;height:80px'></div>", unsafe_allow_html=True)
 
-    st.write("¿Cuál debería ser la siguiente figura?")
+    st.write("¿Qué color continúa?")
 
-    r = st.radio("Selecciona:", ["Rojo", "Azul", "Amarillo"])
+    r = st.radio("Respuesta:", ["Rojo", "Azul", "Amarillo"])
 
     if st.button("Responder"):
         correcta = r == "Rojo"
-        st.session_state.respuestas.append(correcta)
+        evaluar(correcta, "7")
+        if not correcta:
+            ayuda_ia("patron")
 
-        if correcta:
-            st.success("Correcto +10")
-            st.session_state.puntos += 10
-            st.session_state.codigos.append("7")
-        else:
-            st.error("Incorrecto")
-            ayuda_ia("patron", False)
+    if st.button("⬅ Volver"): ir("mapa")
+
+# ---------------- RESTO RETOS ----------------
+
+def r3():
+    estilo()
+    st.header("🔺 Geometría")
+
+    st.image("https://upload.wikimedia.org/wikipedia/commons/6/6c/Sonia_Delaunay%2C_1914%2C_Electric_Prismes.jpg")
+
+    r = st.radio("¿Qué tipo de formas ves?", [
+        "Geométricas", "Naturales", "Texto"
+    ])
+
+    if st.button("Responder"):
+        evaluar(r == "Geométricas", "2")
+
+    if st.button("⬅ Volver"): ir("mapa")
+
+def r4():
+    estilo()
+    st.header("🌈 Color")
+
+    r = st.radio("¿Mayor contraste?", [
+        "Colores opuestos", "Colores iguales", "Colores claros"
+    ])
+
+    if st.button("Responder"):
+        evaluar(r == "Colores opuestos", "5")
+
+    if st.button("⬅ Volver"): ir("mapa")
+
+def r5():
+    estilo()
+    st.header("🧠 Ritmo")
+
+    r = st.radio("¿Qué crea ritmo visual?", [
+        "Repetición", "Un solo color", "Texto"
+    ])
+
+    if st.button("Responder"):
+        evaluar(r == "Repetición", "8")
+
+    if st.button("⬅ Volver"): ir("mapa")
+
+def r6():
+    estilo()
+    st.header("📐 Simetría")
+
+    r = st.radio("¿Qué es simetría?", [
+        "Partes iguales", "Desorden", "Aleatorio"
+    ])
+
+    if st.button("Responder"):
+        evaluar(r == "Partes iguales", "6")
+
+    if st.button("⬅ Volver"): ir("mapa")
+
+def r7():
+    estilo()
+    st.header("🎨 Composición")
+
+    r = st.radio("¿Qué mejora una composición?", [
+        "Organización", "Caos", "Nada"
+    ])
+
+    if st.button("Responder"):
+        evaluar(r == "Organización", "4")
 
     if st.button("⬅ Volver"): ir("mapa")
 
@@ -193,7 +256,9 @@ def r2():
 
 def final():
     estilo()
-    st.header("🔐 Introduce el código")
+    st.header("🔐 Código final")
+
+    st.write("Introduce los números en el orden de los retos")
 
     codigo = st.text_input("Código")
 
@@ -207,17 +272,11 @@ def final():
 
     if st.button("⬅ Volver"): ir("mapa")
 
-# ---------------- GANAR / PERDER ----------------
-
 def ganar():
     estilo()
     st.title("🎉 HAS GANADO")
     st.balloons()
-
     guardar(st.session_state.nombre)
-
-    if st.button("📊 Ver resultados"):
-        ir("dashboard")
 
 def perder():
     estilo()
@@ -233,10 +292,14 @@ pantallas = {
     "mapa": mapa,
     "r1": r1,
     "r2": r2,
+    "r3": r3,
+    "r4": r4,
+    "r5": r5,
+    "r6": r6,
+    "r7": r7,
     "final": final,
     "ganar": ganar,
-    "perder": perder,
-    "dashboard": dashboard
+    "perder": perder
 }
 
 pantallas[st.session_state.pantalla]()
