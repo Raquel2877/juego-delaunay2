@@ -17,13 +17,6 @@ if "puntos" not in st.session_state:
 if "inicio" not in st.session_state:
     st.session_state.inicio = datetime.datetime.now()
 
-# ---------------- SONIDOS ----------------
-def sonido_acierto():
-    st.audio("https://www.soundjay.com/buttons/sounds/button-4.mp3", autoplay=True)
-
-def sonido_error():
-    st.audio("https://www.soundjay.com/buttons/sounds/button-10.mp3", autoplay=True)
-
 # ---------------- ESTILO ----------------
 def estilo():
     st.markdown("""
@@ -46,20 +39,18 @@ def ir(p):
 # ---------------- NAV ----------------
 def nav():
     col1, col2 = st.columns(2)
-    if col1.button("🗺️ Mapa"):
+    if col1.button("🗺️ Volver al mapa"):
         ir("mapa")
-    if col2.button("🏠 Inicio"):
+    if col2.button("🏠 Volver al inicio"):
         ir("inicio")
 
 # ---------------- EVALUAR ----------------
 def evaluar(correcta, codigo):
     if correcta:
-        sonido_acierto()
         st.success(f"✔ Correcto → Anota: {codigo}")
         st.session_state.puntos += 10
         st.session_state.codigos.append(codigo)
     else:
-        sonido_error()
         st.error("❌ Incorrecto")
         st.session_state.puntos -= 2
 
@@ -68,44 +59,55 @@ def evaluar(correcta, codigo):
 # ---------------- INICIO ----------------
 def inicio():
     estilo()
+
     st.title("🎨 El código secreto del color")
 
     st.markdown("""
-    ### 🎯 Cómo jugar
+    ### 🎯 ¿Cómo jugar?
 
-    - Elige una respuesta en cada reto  
-    - Cada respuesta tiene un número  
-    - **Anota ese número**  
+    Vas a resolver una serie de retos relacionados con:
+    - 📐 Geometría
+    - 🎨 Color
+    - 🧠 Arte de Sonia Delaunay
 
-    🔐 Al final tendrás que escribir el código completo  
-    siguiendo el orden de los retos  
+    #### 🧩 En cada reto:
+    - Elige una respuesta
+    - Cada respuesta tiene un número
+    - **Debes anotar ese número**
 
-    ⭐ Puntuación:
-    ✔ +10 acierto  
-    ❌ -2 error  
+    #### 🔐 Reto final:
+    - Tendrás varios números
+    - Debes escribirlos en orden
+    - Ese será el código final
+
+    #### ⭐ Puntuación:
+    ✔ +10 puntos → respuesta correcta  
+    ❌ -2 puntos → respuesta incorrecta
     """)
 
-    st.session_state.nombre = st.text_input("Nombre")
+    st.session_state.nombre = st.text_input("Nombre del jugador")
     st.session_state.nivel = st.radio("Nivel", ["Fácil","Medio","Difícil"])
 
-    st.write(f"⭐ Puntos: {st.session_state.puntos}")
+    st.write(f"⭐ Puntos actuales: {st.session_state.puntos}")
 
-    if st.button("🚀 Empezar"):
+    if st.button("🚀 Comenzar"):
         ir("mapa")
 
 # ---------------- MAPA ----------------
 def mapa():
     estilo()
-    st.header("🗺️ Mapa del juego")
 
-    if st.button("🔵 Círculos"): ir("r1")
-    if st.button("🔁 Patrones"): ir("r2")
-    if st.button("🔺 Geometría"): ir("r3")
-    if st.button("🌈 Color"): ir("r4")
-    if st.button("🧠 Ritmo"): ir("r5")
-    if st.button("📐 Simetría"): ir("r6")
-    if st.button("🎨 Composición"): ir("r7")
-    if st.button("🔐 Código final"): ir("final")
+    st.header("🗺️ Mapa del juego")
+    st.write(f"⭐ Puntos: {st.session_state.puntos}")
+
+    if st.button("🔵 1. Círculos"): ir("r1")
+    if st.button("🔁 2. Patrones"): ir("r2")
+    if st.button("🔺 3. Geometría"): ir("r3")
+    if st.button("🌈 4. Color"): ir("r4")
+    if st.button("🧠 5. Ritmo"): ir("r5")
+    if st.button("📐 6. Simetría"): ir("r6")
+    if st.button("🎨 7. Composición"): ir("r7")
+    if st.button("🔐 Introducir código"): ir("final")
 
 # ---------------- RETOS ----------------
 
@@ -113,10 +115,10 @@ def r1():
     estilo()
     st.header("🔵 Círculos")
 
-    r = st.radio("¿Qué es el radio?", [
-        "1 → Circunferencia",
+    r = st.radio("¿Qué línea representa el radio?", [
+        "1 → Circunferencia completa",
         "2 → Diámetro",
-        "3 → Centro al borde"
+        "3 → Del centro al borde"
     ])
 
     if st.button("Responder"):
@@ -128,16 +130,17 @@ def r2():
     estilo()
     st.header("🔁 Patrones")
 
+    st.markdown("Observa el patrón:")
     st.markdown("🔴 🔵 🔴 🔵 🔴 ?")
 
-    r = st.radio("¿Qué color sigue?", [
-        "1 → Rojo",
-        "2 → Azul",
+    r = st.radio("¿Qué color continúa?", [
+        "1 → Azul",
+        "2 → Rojo",
         "3 → Amarillo"
     ])
 
     if st.button("Responder"):
-        evaluar("1" in r, "7")  # CORRECTO
+        evaluar("1" in r, "7")  # CORRECTO: AZUL
 
     nav()
 
@@ -160,10 +163,10 @@ def r4():
     estilo()
     st.header("🌈 Color")
 
-    r = st.radio("Colores primarios", [
+    r = st.radio("¿Cuáles son los colores primarios?", [
         "1 → Rojo, azul y amarillo",
         "2 → Verde, azul y rojo",
-        "3 → Blanco y negro"
+        "3 → Negro y blanco"
     ])
 
     if st.button("Responder"):
@@ -173,10 +176,10 @@ def r4():
 
 def r5():
     estilo()
-    st.header("🧠 Ritmo")
+    st.header("🧠 Ritmo visual")
 
-    r = st.radio("¿Qué crea ritmo?", [
-        "1 → Repetición",
+    r = st.radio("¿Qué crea ritmo visual?", [
+        "1 → Repetición de formas",
         "2 → Un solo color",
         "3 → Texto"
     ])
@@ -190,9 +193,9 @@ def r6():
     estilo()
     st.header("📐 Simetría")
 
-    r = st.radio("¿Qué es simetría?", [
+    r = st.radio("¿Qué es la simetría?", [
         "1 → Partes iguales",
-        "2 → Caos",
+        "2 → Desorden",
         "3 → Aleatorio"
     ])
 
@@ -205,8 +208,8 @@ def r7():
     estilo()
     st.header("🎨 Composición")
 
-    r = st.radio("¿Qué mejora una obra?", [
-        "1 → Organización",
+    r = st.radio("¿Qué mejora una obra artística?", [
+        "1 → Organización visual",
         "2 → Caos",
         "3 → Nada"
     ])
@@ -220,12 +223,14 @@ def r7():
 
 def final():
     estilo()
-    st.header("🔐 Código final")
+    st.header("🔐 Introduce el código final")
 
     st.markdown("""
-    Introduce los números que anotaste  
-    en el orden de los retos  
-    Ejemplo: 3725...
+    ### 📌 Instrucciones
+
+    - Usa los números que has anotado  
+    - Escríbelos en el orden de los retos  
+    - Ejemplo: 3725...
     """)
 
     c = st.text_input("Código")
@@ -238,15 +243,19 @@ def final():
 
     nav()
 
+# ---------------- RESULTADO ----------------
+
 def ganar():
     estilo()
-    st.title("🎉 GANASTE")
+    st.title("🎉 ¡HAS GANADO!")
     st.balloons()
+    st.write(f"⭐ Puntuación final: {st.session_state.puntos}")
     nav()
 
 def perder():
     estilo()
-    st.title("❌ Intenta otra vez")
+    st.title("❌ Código incorrecto")
+    st.write("Revisa los números que anotaste")
     nav()
 
 # ---------------- ROUTER ----------------
