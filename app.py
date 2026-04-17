@@ -17,51 +17,25 @@ if "puntos" not in st.session_state:
 if "inicio" not in st.session_state:
     st.session_state.inicio = datetime.datetime.now()
 
-# ---------------- ESTILO VISUAL ----------------
+# ---------------- SONIDOS ----------------
+def sonido_acierto():
+    st.audio("https://www.soundjay.com/buttons/sounds/button-4.mp3", autoplay=True)
+
+def sonido_error():
+    st.audio("https://www.soundjay.com/buttons/sounds/button-10.mp3", autoplay=True)
+
+# ---------------- ESTILO ----------------
 def estilo():
     st.markdown("""
     <style>
     .stApp {
         background: linear-gradient(135deg, #1D4ED8, #E63946, #FFD60A);
         color: white;
-        font-family: 'Trebuchet MS', sans-serif;
+        font-family: Arial;
     }
-
-    h1 {
-        font-size: 48px;
-        color: #FFD60A;
-        text-align: center;
-    }
-
-    h2 {
-        font-size: 36px;
-        color: #ffffff;
-    }
-
-    .pregunta {
-        font-size: 24px;
-        font-weight: bold;
-        color: #FFD60A;
-    }
-
-    .explicacion {
-        font-size: 18px;
-        color: #ffffff;
-    }
-
-    .codigo-box {
-        background-color: rgba(0,0,0,0.6);
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 20px;
-    }
-
-    .stButton>button {
-        background-color: #E63946;
-        color: white;
-        border-radius: 10px;
-        font-size: 18px;
-    }
+    h1 {font-size: 45px; color: #FFD60A;}
+    h2 {font-size: 30px;}
+    .pregunta {font-size: 22px; font-weight: bold;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -69,90 +43,52 @@ def ir(p):
     st.session_state.pantalla = p
     st.rerun()
 
-# ---------------- SONIDOS ----------------
-def sonido_acierto():
-    st.audio("https://www.soundjay.com/buttons/sounds/button-4.mp3")
-
-def sonido_error():
-    st.audio("https://www.soundjay.com/buttons/sounds/button-10.mp3")
-
 # ---------------- NAV ----------------
 def nav():
     col1, col2 = st.columns(2)
-
     if col1.button("🗺️ Mapa"):
         ir("mapa")
-
     if col2.button("🏠 Inicio"):
         ir("inicio")
 
 # ---------------- EVALUAR ----------------
 def evaluar(correcta, codigo):
     if correcta:
-        st.success(f"✔ Correcto → ANOTA: {codigo}")
         sonido_acierto()
+        st.success(f"✔ Correcto → Anota: {codigo}")
         st.session_state.puntos += 10
         st.session_state.codigos.append(codigo)
     else:
-        st.error("❌ Incorrecto")
         sonido_error()
+        st.error("❌ Incorrecto")
         st.session_state.puntos -= 2
+
+    nav()
 
 # ---------------- INICIO ----------------
 def inicio():
     estilo()
-
-    st.markdown("<h1>🎨 El código secreto del color</h1>", unsafe_allow_html=True)
+    st.title("🎨 El código secreto del color")
 
     st.markdown("""
-    <div class='explicacion'>
-    
-    <b>🎯 OBJETIVO DEL JUEGO</b><br><br>
+    ### 🎯 Cómo jugar
 
-    Vas a resolver <b>7 retos</b> relacionados con:
-    <ul>
-        <li>📐 Geometría</li>
-        <li>🎨 Color</li>
-        <li>🧠 Arte de Sonia Delaunay</li>
-    </ul>
+    - Elige una respuesta en cada reto  
+    - Cada respuesta tiene un número  
+    - **Anota ese número**  
 
-    <b>🧠 ¿Cómo funciona?</b><br><br>
+    🔐 Al final tendrás que escribir el código completo  
+    siguiendo el orden de los retos  
 
-    En cada reto:
-    <ul>
-        <li>Eliges una respuesta</li>
-        <li>Cada respuesta tiene un número</li>
-        <li><b>Debes ANOTAR ese número</b></li>
-    </ul>
+    ⭐ Puntuación:
+    ✔ +10 acierto  
+    ❌ -2 error  
+    """)
 
-    <b>🔐 RETO FINAL: EL CÓDIGO</b><br><br>
+    st.session_state.nombre = st.text_input("Nombre")
+    st.session_state.nivel = st.radio("Nivel", ["Fácil","Medio","Difícil"])
 
-    Al terminar:
-    <ul>
-        <li>Tendrás varios números</li>
-        <li>Debes escribirlos en el orden de los retos</li>
-    </ul>
-
-    <div class='codigo-box'>
-    Ejemplo:<br>
-    Reto 1 → 3<br>
-    Reto 2 → 7<br>
-    Reto 3 → 2<br><br>
-    Código final → <b>372...</b>
-    </div>
-
-    <br>
-    <b>⭐ PUNTOS</b><br>
-    ✔ Acierto: +10<br>
-    ❌ Error: -2
-    
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.session_state.nombre = st.text_input("Tu nombre")
-    st.session_state.nivel = st.radio("Nivel", ["Fácil", "Medio", "Difícil"])
-
-    st.write(f"⭐ Puntos actuales: {st.session_state.puntos}")
+    st.write(f"⭐ Puntos: {st.session_state.puntos}")
 
     if st.button("🚀 Empezar"):
         ir("mapa")
@@ -160,9 +96,7 @@ def inicio():
 # ---------------- MAPA ----------------
 def mapa():
     estilo()
-
-    st.markdown("<h2>🗺️ Mapa del juego</h2>", unsafe_allow_html=True)
-    st.write(f"⭐ Puntos: {st.session_state.puntos}")
+    st.header("🗺️ Mapa del juego")
 
     if st.button("🔵 Círculos"): ir("r1")
     if st.button("🔁 Patrones"): ir("r2")
@@ -177,16 +111,12 @@ def mapa():
 
 def r1():
     estilo()
-    st.markdown("<h2>🔵 Círculos</h2>", unsafe_allow_html=True)
+    st.header("🔵 Círculos")
 
-    st.image("https://upload.wikimedia.org/wikipedia/commons/3/3f/Circle_radii.svg")
-
-    st.markdown("<div class='pregunta'>¿Qué línea representa el radio?</div>", unsafe_allow_html=True)
-
-    r = st.radio("", [
+    r = st.radio("¿Qué es el radio?", [
         "1 → Circunferencia",
         "2 → Diámetro",
-        "3 → Del centro al borde"
+        "3 → Centro al borde"
     ])
 
     if st.button("Responder"):
@@ -196,28 +126,26 @@ def r1():
 
 def r2():
     estilo()
-    st.markdown("<h2>🔁 Patrones</h2>", unsafe_allow_html=True)
+    st.header("🔁 Patrones")
 
-    st.markdown("<div class='pregunta'>🔴 🔵 🔴 🔵 🔴 ?</div>", unsafe_allow_html=True)
+    st.markdown("🔴 🔵 🔴 🔵 🔴 ?")
 
-    r = st.radio("", [
-        "1 → Azul",
-        "2 → Rojo",
+    r = st.radio("¿Qué color sigue?", [
+        "1 → Rojo",
+        "2 → Azul",
         "3 → Amarillo"
     ])
 
     if st.button("Responder"):
-        evaluar("2" in r, "7")
+        evaluar("1" in r, "7")  # CORRECTO
 
     nav()
 
 def r3():
     estilo()
-    st.markdown("<h2>🔺 Geometría</h2>", unsafe_allow_html=True)
+    st.header("🔺 Geometría")
 
-    st.markdown("<div class='pregunta'>¿Qué figura tiene 4 lados iguales?</div>", unsafe_allow_html=True)
-
-    r = st.radio("", [
+    r = st.radio("¿Qué figura tiene 4 lados iguales?", [
         "1 → Triángulo",
         "2 → Cuadrado",
         "3 → Círculo"
@@ -230,14 +158,12 @@ def r3():
 
 def r4():
     estilo()
-    st.markdown("<h2>🌈 Color</h2>", unsafe_allow_html=True)
+    st.header("🌈 Color")
 
-    st.markdown("<div class='pregunta'>¿Cuáles son los colores primarios?</div>", unsafe_allow_html=True)
-
-    r = st.radio("", [
+    r = st.radio("Colores primarios", [
         "1 → Rojo, azul y amarillo",
         "2 → Verde, azul y rojo",
-        "3 → Negro, blanco y gris"
+        "3 → Blanco y negro"
     ])
 
     if st.button("Responder"):
@@ -247,11 +173,9 @@ def r4():
 
 def r5():
     estilo()
-    st.markdown("<h2>🧠 Ritmo</h2>", unsafe_allow_html=True)
+    st.header("🧠 Ritmo")
 
-    st.markdown("<div class='pregunta'>¿Qué crea ritmo visual?</div>", unsafe_allow_html=True)
-
-    r = st.radio("", [
+    r = st.radio("¿Qué crea ritmo?", [
         "1 → Repetición",
         "2 → Un solo color",
         "3 → Texto"
@@ -264,13 +188,11 @@ def r5():
 
 def r6():
     estilo()
-    st.markdown("<h2>📐 Simetría</h2>", unsafe_allow_html=True)
+    st.header("📐 Simetría")
 
-    st.markdown("<div class='pregunta'>¿Qué es la simetría?</div>", unsafe_allow_html=True)
-
-    r = st.radio("", [
+    r = st.radio("¿Qué es simetría?", [
         "1 → Partes iguales",
-        "2 → Desorden",
+        "2 → Caos",
         "3 → Aleatorio"
     ])
 
@@ -281,12 +203,10 @@ def r6():
 
 def r7():
     estilo()
-    st.markdown("<h2>🎨 Composición</h2>", unsafe_allow_html=True)
+    st.header("🎨 Composición")
 
-    st.markdown("<div class='pregunta'>¿Qué mejora una obra?</div>", unsafe_allow_html=True)
-
-    r = st.radio("", [
-        "1 → Organización visual",
+    r = st.radio("¿Qué mejora una obra?", [
+        "1 → Organización",
         "2 → Caos",
         "3 → Nada"
     ])
@@ -300,15 +220,13 @@ def r7():
 
 def final():
     estilo()
-
-    st.markdown("<h2>🔐 Código final</h2>", unsafe_allow_html=True)
+    st.header("🔐 Código final")
 
     st.markdown("""
-    <div class='explicacion'>
-    Escribe los números que has anotado en orden.<br><br>
+    Introduce los números que anotaste  
+    en el orden de los retos  
     Ejemplo: 3725...
-    </div>
-    """, unsafe_allow_html=True)
+    """)
 
     c = st.text_input("Código")
 
@@ -320,16 +238,16 @@ def final():
 
     nav()
 
-# ---------------- FINAL ----------------
-
 def ganar():
     estilo()
-    st.markdown("<h1>🎉 ¡HAS GANADO!</h1>", unsafe_allow_html=True)
+    st.title("🎉 GANASTE")
     st.balloons()
+    nav()
 
 def perder():
     estilo()
-    st.markdown("<h1>❌ Código incorrecto</h1>", unsafe_allow_html=True)
+    st.title("❌ Intenta otra vez")
+    nav()
 
 # ---------------- ROUTER ----------------
 
