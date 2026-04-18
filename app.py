@@ -14,6 +14,18 @@ if "codigos" not in st.session_state:
 if "puntos" not in st.session_state:
     st.session_state.puntos = 0
 
+if "uid" not in st.session_state:
+    st.session_state.uid = 0
+
+# ---------------- UTILS ----------------
+def new_key(base):
+    st.session_state.uid += 1
+    return f"{base}_{st.session_state.uid}"
+
+def ir(p):
+    st.session_state.pantalla = p
+    st.rerun()
+
 # ---------------- ESTILO ----------------
 def estilo():
     st.markdown("""
@@ -26,26 +38,22 @@ def estilo():
     </style>
     """, unsafe_allow_html=True)
 
-def ir(p):
-    st.session_state.pantalla = p
-    st.rerun()
-
-# ---------------- NAV (CON KEYS) ----------------
+# ---------------- NAV ----------------
 def nav(id):
     col1, col2 = st.columns(2)
 
-    if col1.button("🗺️ Mapa", key=f"mapa_{id}"):
+    if col1.button("🗺️ Mapa", key=new_key(f"mapa_{id}")):
         ir("mapa")
 
-    if col2.button("🏠 Inicio", key=f"inicio_{id}"):
+    if col2.button("🏠 Inicio", key=new_key(f"inicio_{id}")):
         ir("inicio")
 
 # ---------------- EVALUAR ----------------
 def evaluar(correcta, codigo, id):
     if correcta:
-        st.success("✔ Correcto. Anota el número.")
-        st.session_state.puntos += 10
+        st.success(f"✔ Correcto → NÚMERO: {codigo}")
         st.session_state.codigos.append(codigo)
+        st.session_state.puntos += 10
     else:
         st.error("❌ Incorrecto")
         st.session_state.puntos -= 2
@@ -59,35 +67,21 @@ def inicio():
     st.title("🎨 El código secreto del color")
 
     st.markdown("""
-    ## 🎯 Cómo jugar
+    ### 🎯 Cómo jugar
 
-    Vas a resolver varios retos relacionados con:
-    - Geometría
-    - Color
-    - Arte de Sonia Delaunay
+    - Resuelve los retos
+    - Cada respuesta correcta te da un número
+    - **Anota ese número**
 
-    ### 🧩 Importante
-
-    - Cada respuesta tiene un número
-    - Debes ANOTAR ese número
-    - No se mostrará en pantalla
-
-    ### 🔐 Código final
-
-    - Al final tendrás varios números
-    - Debes escribirlos en orden
+    🔐 Código final:
+    - Introduce los números en orden
     - Ejemplo: 3725
-
-    ### ⭐ Puntuación
-
-    ✔ +10 acierto  
-    ❌ -2 error
     """)
 
-    st.session_state.nombre = st.text_input("Nombre")
-    st.session_state.nivel = st.radio("Nivel", ["Fácil","Medio","Difícil"])
+    st.session_state.nombre = st.text_input("Nombre", key=new_key("nombre"))
+    st.session_state.nivel = st.radio("Nivel", ["Fácil","Medio","Difícil"], key=new_key("nivel"))
 
-    if st.button("🚀 Empezar", key="start"):
+    if st.button("🚀 Empezar", key=new_key("start")):
         ir("mapa")
 
 # ---------------- MAPA ----------------
@@ -96,14 +90,14 @@ def mapa():
 
     st.header("🗺️ Mapa")
 
-    if st.button("1 Círculos", key="r1_btn"): ir("r1")
-    if st.button("2 Patrones", key="r2_btn"): ir("r2")
-    if st.button("3 Geometría", key="r3_btn"): ir("r3")
-    if st.button("4 Color", key="r4_btn"): ir("r4")
-    if st.button("5 Ritmo", key="r5_btn"): ir("r5")
-    if st.button("6 Simetría", key="r6_btn"): ir("r6")
-    if st.button("7 Composición", key="r7_btn"): ir("r7")
-    if st.button("Código final", key="final_btn"): ir("final")
+    if st.button("1 Círculos", key=new_key("r1")): ir("r1")
+    if st.button("2 Patrones", key=new_key("r2")): ir("r2")
+    if st.button("3 Geometría", key=new_key("r3")): ir("r3")
+    if st.button("4 Color", key=new_key("r4")): ir("r4")
+    if st.button("5 Ritmo", key=new_key("r5")): ir("r5")
+    if st.button("6 Simetría", key=new_key("r6")): ir("r6")
+    if st.button("7 Composición", key=new_key("r7")): ir("r7")
+    if st.button("Código final", key=new_key("final")): ir("final")
 
 # ---------------- RETOS ----------------
 
@@ -115,14 +109,12 @@ def r1():
         "1 Circunferencia",
         "2 Diámetro",
         "3 Centro al borde"
-    ], key="r1_radio")
+    ], key=new_key("r1_radio"))
 
-    if st.button("Responder", key="r1_responder"):
+    if st.button("Responder", key=new_key("r1_btn")):
         evaluar("3" in r, "3", "r1")
 
     nav("r1")
-
-# ---------------- PATRÓN CORREGIDO ----------------
 
 def r2():
     estilo()
@@ -134,14 +126,12 @@ def r2():
         "1 Azul",
         "2 Rojo",
         "3 Amarillo"
-    ], key="r2_radio")
+    ], key=new_key("r2_radio"))
 
-    if st.button("Responder", key="r2_responder"):
-        evaluar("1" in r, "7", "r2")  # AZUL CORRECTO
+    if st.button("Responder", key=new_key("r2_btn")):
+        evaluar("1" in r, "7", "r2")  # azul
 
     nav("r2")
-
-# ---------------- RESTO ----------------
 
 def r3():
     estilo()
@@ -151,9 +141,9 @@ def r3():
         "1 Triángulo",
         "2 Cuadrado",
         "3 Círculo"
-    ], key="r3_radio")
+    ], key=new_key("r3_radio"))
 
-    if st.button("Responder", key="r3_responder"):
+    if st.button("Responder", key=new_key("r3_btn")):
         evaluar("2" in r, "2", "r3")
 
     nav("r3")
@@ -166,9 +156,9 @@ def r4():
         "1 Rojo azul amarillo",
         "2 Verde azul rojo",
         "3 Blanco negro"
-    ], key="r4_radio")
+    ], key=new_key("r4_radio"))
 
-    if st.button("Responder", key="r4_responder"):
+    if st.button("Responder", key=new_key("r4_btn")):
         evaluar("1" in r, "5", "r4")
 
     nav("r4")
@@ -181,9 +171,9 @@ def r5():
         "1 Repetición",
         "2 Un color",
         "3 Texto"
-    ], key="r5_radio")
+    ], key=new_key("r5_radio"))
 
-    if st.button("Responder", key="r5_responder"):
+    if st.button("Responder", key=new_key("r5_btn")):
         evaluar("1" in r, "8", "r5")
 
     nav("r5")
@@ -196,9 +186,9 @@ def r6():
         "1 Partes iguales",
         "2 Caos",
         "3 Aleatorio"
-    ], key="r6_radio")
+    ], key=new_key("r6_radio"))
 
-    if st.button("Responder", key="r6_responder"):
+    if st.button("Responder", key=new_key("r6_btn")):
         evaluar("1" in r, "6", "r6")
 
     nav("r6")
@@ -211,9 +201,9 @@ def r7():
         "1 Organización",
         "2 Caos",
         "3 Nada"
-    ], key="r7_radio")
+    ], key=new_key("r7_radio"))
 
-    if st.button("Responder", key="r7_responder"):
+    if st.button("Responder", key=new_key("r7_btn")):
         evaluar("1" in r, "4", "r7")
 
     nav("r7")
@@ -224,9 +214,9 @@ def final():
     estilo()
     st.header("🔐 Código final")
 
-    c = st.text_input("Introduce el código", key="codigo_input")
+    c = st.text_input("Introduce el código", key=new_key("codigo"))
 
-    if st.button("Comprobar", key="check"):
+    if st.button("Comprobar", key=new_key("check")):
         if c == "".join(st.session_state.codigos):
             ir("ganar")
         else:
